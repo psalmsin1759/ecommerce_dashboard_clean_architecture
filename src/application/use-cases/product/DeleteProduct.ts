@@ -1,4 +1,4 @@
-import { IProductRepository } from "@/domain/repositories/IProductRepository";
+import { IProductRepository } from "@/domain/repositories/iproduct.repository";
 
 export const deleteProduct = async (
   productRepository: IProductRepository,

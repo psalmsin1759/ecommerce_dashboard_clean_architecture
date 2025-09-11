@@ -1,5 +1,5 @@
 import { Product } from "@/domain/entities/Product";
-import { IProductRepository } from "@/domain/repositories/IProductRepository";
+import { IProductRepository } from "@/domain/repositories/iproduct.repository";
 import apiClient  from "../http/apiClient";
 
 export class ProductApiRepository implements IProductRepository {

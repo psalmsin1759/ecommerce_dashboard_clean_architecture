@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FaBars, FaUserEdit, FaKey, FaSignOutAlt, FaChevronDown } from "react-icons/fa";
 import Link from "next/link";
+import { useAuth } from "@/presentation/contexts/auth.context";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -12,9 +13,13 @@ export default function Header({ toggleSidebar }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const {admin, logout, isAuthenticated}= useAuth()
+
+  
+  
   const handleLogout = () => {
    
-    alert("Logged out");
+    logout()
   };
 
 
@@ -42,12 +47,18 @@ export default function Header({ toggleSidebar }: HeaderProps) {
 
      
       <div className="relative" ref={dropdownRef}>
+
+        {isAuthenticated && admin ? (
         <button
           onClick={() => setShowDropdown((prev) => !prev)}
           className="flex items-center text-sm text-gray-700 gap-2 focus:outline-none"
         >
-          Welcome, Admin <FaChevronDown size={14} />
+          Welcome, {admin?.fullName} <FaChevronDown size={14} />
         </button>
+
+        ) : (
+        <span className="text-gray-500">Not logged in</span>
+      )}
 
         {showDropdown && (
           <div className="absolute right-0 mt-2 w-52 bg-white border rounded-md shadow-lg z-50 animate-fade-in">

@@ -1,4 +1,4 @@
-import { IProductRepository } from "@/domain/repositories/IProductRepository";
+import { IProductRepository } from "@/domain/repositories/iproduct.repository";
 import { Product } from "@/domain/entities/Product";
 
 export const updateProduct = async (
