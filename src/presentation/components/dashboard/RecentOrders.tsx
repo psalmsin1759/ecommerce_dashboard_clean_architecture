@@ -142,7 +142,7 @@ export default function RecentOrders() {
 
       <div className="mb-4 flex items-center justify-between">
         <Input
-          placeholder="Search orders..."
+          placeholder="Search order id..."
           value={filtering}
           onChange={(e) => {
             setFiltering(e.target.value);

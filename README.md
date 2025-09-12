@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ecommerce Dashboard - Clean Architecture
 
-## Getting Started
+A modern ecommerce dashboard built with Next.js, TypeScript, and TanStack Table.
+This project follows Clean Architecture to ensure scalability, maintainability, and testability.
 
-First, run the development server:
+## Features
+
+- Dashboard Analytics – Orders, sales, revenue trends, top products
+
+- Orders Management – Pagination, filtering, search, sorting, export (CSV)
+
+- Products Management – CRUD operations, inventory control
+
+- Customers Management – Profiles, order history
+
+- Payments Tracking – Payment & shipping statuses
+
+- Graph & Reports – Monthly sales, top-selling products
+
+- Clean Architecture – Separation of concerns across Domain, Application, Infrastructure, Presentation
+
+## Clean Architecture Overview
+
+This project uses Clean Architecture principles:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+📂 src
+ ┣ 📂 domain          # Core business logic (Entities, Interfaces, Repositories)
+ ┣ 📂 application     # Use cases (business rules, orchestration)
+ ┣ 📂 infrastructure  # Implementations (API calls, DB, external services)
+ ┣ 📂 presentation    # UI layer (Next.js pages, components, hooks)
+
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Layers Explained
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Domain
 
-## Learn More
+-Entities: Order, Product, Customer
 
-To learn more about Next.js, take a look at the following resources:
+- Interfaces: IOrderRepository, IProductRepository
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Pure and framework-independent
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Application
 
-## Deploy on Vercel
+- Use Cases: Encapsulate business logic (e.g., ListOrdersUseCase)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Coordinate repositories and domain models
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Testable in isolation
+
+### Infrastructure
+
+- API clients, DB access, external integrations
+
+- Implements repository interfaces (OrderApiRepository)
+
+- Can be swapped without affecting business rules
+
+### Presentation
+
+- React components, hooks (useOrders)
+
+- UI logic, user interactions, rendering data
+
+- Talks only to the Application Layer
+
+## Tech Stack
+
+- Frontend Framework: Next.js 
+
+- Language: TypeScript
+
+- UI Components: TailwindCSS + Shadcn UI
+
+- Data Layer: TanStack Table v8
+
+- Icons: Lucide-react, react-icons
+
+- State Management: React hooks, context 
+
+- API Client: Axios
+
+## Installation
+```bash
+
+git clone https://github.com/psalmsin1759/ecommerce_dashboard_clean_architecture.git
+cd ecommerce_dashboard_clean_architecture
+
+npm install
+
+npm run dev
+
+```
+
+
+## Example Flow
+
+### Order Listing
+
+- presentation/hooks/useOrders.ts → fetches orders with filters, pagination
+
+- Uses ProductListUseCase from Application Layer
+
+- Which calls OrderApiRepository (Infrastructure)
+
+- Which implements IOrderRepository (Domain)
+
+### Analytics Graph
+
+- analytics.hook.ts → fetches counts & totals
+
+- Uses graphData method from OrderRepository
+
+- Returns monthly breakdown for the dashboard
+
+### This strict separation ensures that:
+
+- The UI can change without breaking business rules
+
+- The API implementation can change without breaking the UI
+
+- The Use Cases are testable and reusable
+
+
+### Benefits of Clean Architecture
+
+- Testable – Business rules isolated from UI & frameworks
+
+- Scalable – Easy to extend features without breaking layers
+
+- Maintainable – Clear separation of concerns
+
+- Flexible – Swap APIs, databases, or UI frameworks with minimal impact
+
+
+### Screenshot:
+Dashboard
+![Dashbboard UI Screenshot](./docs/dashboard.png)
