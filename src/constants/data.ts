@@ -48,31 +48,18 @@ export interface AnalyticsItem {
   icon: IconType;
 }
 
+
 export const analytics: AnalyticsItem[] = [
   {
-    title: "Total Revenue",
-    amount: "$120,500",
-    percentage: "+12%",
-    time: "Compared to last month",
-    icon: MdAttachMoney,
-  },
-  {
-    title: "Total Orders",
-    amount: "8,240",
-    percentage: "+8%",
-    time: "Compared to last month",
-    icon: MdShoppingCart,
-  },
-  {
     title: "Total Customers",
-    amount: "2,430",
+    amount: "2",
     percentage: "+5%",
     time: "Compared to last month",
     icon: MdPeople,
   },
   {
     title: "Total Expenses",
-    amount: "$32,100",
+    amount: "100",
     percentage: "-4%",
     time: "Compared to last month",
     icon: MdTrendingDown,

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/presentation/components/ui/sonner";
 import { AuthProvider } from "@/presentation/contexts/auth.context";
 
 export default function AuthLayout({
