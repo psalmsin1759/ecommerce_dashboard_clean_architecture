@@ -22,34 +22,16 @@ import {
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { ArrowUpDown, Download } from "lucide-react";
+import { useOrders } from "@/presentation/hooks/order.hook";
+import { Order } from "@/domain/entities/Order";
 
-// Define the data type
-export type Order = {
-  id: string;
-  customer: string;
-  status: "pending" | "completed" | "cancelled";
-  amount: number;
-  date: string;
-};
-
-// Example data
-const orders: Order[] = [
-  { id: "1", customer: "John Doe", status: "completed", amount: 120, date: "2025-09-01" },
-  { id: "2", customer: "Jane Smith", status: "pending", amount: 85, date: "2025-09-03" },
-  { id: "3", customer: "Michael Lee", status: "cancelled", amount: 50, date: "2025-09-04" },
-  { id: "4", customer: "Emily Davis", status: "completed", amount: 230, date: "2025-09-05" },
-  { id: "5", customer: "Chris Evans", status: "pending", amount: 140, date: "2025-09-06" },
-  { id: "6", customer: "Sophia Brown", status: "completed", amount: 300, date: "2025-09-07" },
-];
-
-// Table column definitions
 const columns: ColumnDef<Order>[] = [
   {
     accessorKey: "id",
     header: "Order ID",
   },
   {
-    accessorKey: "customer",
+    accessorKey: "customer.name",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -59,6 +41,7 @@ const columns: ColumnDef<Order>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => row.original.customer?.name ?? "N/A",
   },
   {
     accessorKey: "status",
@@ -66,7 +49,7 @@ const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       const status = row.original.status;
       const color =
-        status === "completed"
+        status === "delivered"
           ? "text-green-600"
           : status === "pending"
           ? "text-yellow-600"
@@ -75,7 +58,7 @@ const columns: ColumnDef<Order>[] = [
     },
   },
   {
-    accessorKey: "amount",
+    accessorKey: "totals.grandTotal",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -85,16 +68,31 @@ const columns: ColumnDef<Order>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => `$${row.original.totals.grandTotal.toFixed(2)}`,
   },
   {
-    accessorKey: "date",
+    accessorKey: "orderDate",
     header: "Date",
+    cell: ({ row }) => new Date(row.original.orderDate).toLocaleDateString(),
   },
 ];
 
 export default function RecentOrders() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [filtering, setFiltering] = React.useState("");
+
+  const {
+    orders,
+    loading,
+    error,
+    page,
+    setPage,
+    totalPages,
+    hasNextPage,
+    hasPrevPage,
+    filter,
+    setFilter,
+  } = useOrders({ page: 1, limit: 10 });
 
   const table = useReactTable({
     data: orders,
@@ -109,20 +107,16 @@ export default function RecentOrders() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: 4, // ✅ Show 4 rows per page
-      },
-    },
+    manualPagination: true,
+    pageCount: totalPages,
   });
 
-  // Export table data as CSV
   const handleExport = () => {
-    const rows = table.getRowModel().rows.map((row) => row.original);
-    const header = Object.keys(rows[0]).join(",");
+    if (!orders.length) return;
+    const header = Object.keys(orders[0]).join(",");
     const csv = [
       header,
-      ...rows.map((row) =>
+      ...orders.map((row) =>
         Object.values(row)
           .map((v) => `"${v}"`)
           .join(",")
@@ -142,14 +136,18 @@ export default function RecentOrders() {
 
   return (
     <div className="p-4 bg-white rounded-xl shadow w-full mt-4">
-      <h2 className="text-lg font-semibold mb-4 text-gray-700">Recent Orders</h2>
+      <h2 className="text-lg font-semibold mb-4 text-gray-700">
+        Recent Orders
+      </h2>
 
-      {/* Search + Export */}
       <div className="mb-4 flex items-center justify-between">
         <Input
           placeholder="Search orders..."
           value={filtering}
-          onChange={(e) => setFiltering(e.target.value)}
+          onChange={(e) => {
+            setFiltering(e.target.value);
+            setFilter({ ...filter, search: e.target.value, page: 1 });
+          }}
           className="max-w-sm"
         />
         <Button variant="outline" size="sm" onClick={handleExport}>
@@ -157,7 +155,6 @@ export default function RecentOrders() {
         </Button>
       </div>
 
-      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -167,27 +164,53 @@ export default function RecentOrders() {
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
             ))}
           </TableHeader>
-
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : error ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-red-500"
+                >
+                  {error}
+                </TableCell>
+              </TableRow>
+            ) : orders?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -196,24 +219,24 @@ export default function RecentOrders() {
         </Table>
       </div>
 
-      {/* Pagination */}
+     
       <div className="flex items-center justify-between mt-4">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
+          onClick={() => setPage(page - 1)}
+          disabled={!hasPrevPage || loading}
         >
           Previous
         </Button>
         <span>
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+          Page {page} of {totalPages}
         </span>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
+          onClick={() => setPage(page + 1)}
+          disabled={!hasNextPage || loading}
         >
           Next
         </Button>
